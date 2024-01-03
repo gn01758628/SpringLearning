@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.http;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,23 +7,25 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Optional;
 
 // @RestController = @Controller + @ResponseBody
+// 代表這個class是controller並且內部方法都有@ResponseBody的註解
 //  @Controller:
-//      1.將class標示為一個controller
-//      2.controller用來處理HTTP請求
-//      3.在此類的方法上使用@GetMapping或@PostMapping
+//      @Component的一種特化註解，一樣會被視為Spring Bean由Spring來管理
+//      1.該class會"被Spring MVC視為一個controller"，用來處理HTTP請求
+//      2.在此類的方法上使用@GetMapping或@PostMapping
 //        會處理指定的URL路徑的請求(沒指定就是根目錄)
-//      4.內部的方法在沒有其他註解的情況下，只能返回String
-//        其代表的是view的檔案名稱(Spring必須要有模板引擎的依賴,EX:Thymeleaf)
+//      3.內部的方法可以返回多種response類型：
+//        a.String：代表view名稱。在這種情況下，需要一個模板引擎（EX:Thymeleaf）來解析view。
+//        b.ModelAndView：同時返回model跟view。
+//        c.ResponseEntity：請看下面method的說明。
+//        在一個前後端完全分離的架構中，a跟b基本上是用不到的。
 //  @ResponseBody:
 //      1.註解在method上，該方法的"返回值"將直接response給客戶端
 //      2.如果方法返回的是String、Primitive type或是Wrapper Class，Spring會將Content-Type設置為text/plain
 //        如果方法返回的是class，Spring會將Content-Type設置為application/json
-//  @RestController:
-//      代表這個class是controller並且內部方法都有@ResponseBody的註解
 @RestController
 public class SampleController {
 
-    @GetMapping("/test1")
+    @GetMapping
     public String hello() {
         return "HelloWorld";
     }
@@ -32,8 +34,8 @@ public class SampleController {
     //  包括但不限於:HTTP狀態碼、響應頭、響應體等
     //  當controller內的方法返回的類別是ResponseEntity時
     //  其方法內部的設定，優先級是最高的，即便沒有使用@RestController或@ResponseBody
-    @GetMapping("/test2")
+    @GetMapping("/test")
     public ResponseEntity<String> hello2() {
-        return ResponseEntity.of(Optional.of("HelloWorld234"));
+        return ResponseEntity.of(Optional.of("Test"));
     }
 }
