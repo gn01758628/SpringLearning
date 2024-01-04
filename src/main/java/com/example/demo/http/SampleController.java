@@ -1,9 +1,21 @@
 package com.example.demo.http;
 
+import com.example.demo.SampleService;
+import com.example.demo.jpa.Sample;
+import com.example.demo.jpa.SampleEntity;
+import com.example.demo.jpa.SampleNameTypeDTO;
+import com.example.demo.jpa.SampleNameTypeVO;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+
+import java.util.List;
 import java.util.Optional;
 
 // @RestController = @Controller + @ResponseBody
@@ -22,10 +34,15 @@ import java.util.Optional;
 //      1.註解在method上，該方法的"返回值"將直接response給客戶端
 //      2.如果方法返回的是String、Primitive type或是Wrapper Class，Spring會將Content-Type設置為text/plain
 //        如果方法返回的是class，Spring會將Content-Type設置為application/json
+@Slf4j
 @RestController
+@RequestMapping("/sample")
+@RequiredArgsConstructor
 public class SampleController {
 
-    @GetMapping
+    private final SampleService sampleService;
+
+    @GetMapping("/hello")
     public String hello() {
         return "HelloWorld";
     }
@@ -38,4 +55,56 @@ public class SampleController {
     public ResponseEntity<String> hello2() {
         return ResponseEntity.of(Optional.of("Test"));
     }
+
+    @PostConstruct
+    public void init() {
+        sampleService.init();
+    }
+
+    @GetMapping
+    public List<Sample> getAll() {
+        return sampleService.query();
+    }
+
+    @GetMapping("/projection/1")
+    public List<SampleNameTypeVO> query2() {
+        return sampleService.queryProjection1();
+    }
+
+    @GetMapping("/projection/2")
+    public List<SampleNameTypeDTO> query3() {
+        return sampleService.queryProjection2();
+    }
+
+    @GetMapping("/query")
+    public Page<Sample> query(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long id,
+            Pageable pageable) {
+        log.info("id:{}, name:{}", id, name);
+
+        var spec = Specification.<SampleEntity>where(null);
+
+        if (id != null) {
+            spec = spec.and(Specification.where((entity, q, cb) -> cb.equal(entity.get("id"), id)));
+        }
+
+        if (name != null && !name.isBlank()) {
+            spec = spec.and(Specification.where((entity, q, cb) -> cb.like(entity.get("name"), "%" + name + "%")));
+        }
+
+        return sampleService.query(spec, pageable);
+    }
+
+    @GetMapping("/{id}")
+    public Sample queryOne(@PathVariable Long id) {
+        return sampleService.query(id)
+                .orElseThrow(() -> new IllegalArgumentException("此ID不存在:" + id));
+    }
+
+    @PostMapping
+    public Sample save(@RequestBody Sample dto) {
+        return sampleService.insert(dto);
+    }
+
 }

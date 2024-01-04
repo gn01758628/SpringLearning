@@ -16,9 +16,9 @@ public class Sample {
     private String name;
     private BigDecimal amount;
     private SampleType type;
-    private LocalDateTime time;
-    private LocalDate date;
-    private YearMonth yearMonth;
-    private Year year;
+    private LocalDateTime t;
+    private LocalDate d;
+    private YearMonth ym;
+    private Year y;
 
 }
